@@ -13,7 +13,7 @@ The objective of this project is to test different architectures to compare two 
 
 **TODO**
 
-### Libraries and Tools :
+### Libraries and Tools
 
 We used Python 3.7 version.
 
@@ -34,7 +34,7 @@ The objective of this project is to design a mini “deep learning framework” 
 
 **TODO**
 
-### Libraries and Tools :
+### Libraries and Tools
 
 We used Python 3.7 version.
 
