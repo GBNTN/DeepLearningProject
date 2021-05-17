@@ -52,6 +52,12 @@ def Linear(Module):
         self.grad_w = None
         self.grad_b = None
 
+        self.mean_w = zeros((input_size, output_size))
+        self.var_w = zeros((input_size, output_size))
+
+        self.mean_b = zeros((1, output_size))
+        self.var_b = zeros((1, output_size))
+
         self.init_params(Xavier, Xavier_gain)
 
     def forward(self, *input):
@@ -86,7 +92,8 @@ def Linear(Module):
         """ Return the parameters of the layer (weight values and gradient, bias
             values and gradient).
         """
-        return [self.w, self.grad_w, self.b, self.grad_b]
+        return [(self.w, self.grad_w, self.mean_w, self.var_w),
+                (self.b, self.grad_b, self.mean_b, self.var_b)]
 
     def init_params(Xavier, Xavier_gain):
         """ initliazation of the weights and bias parameters of the layer.
@@ -173,7 +180,8 @@ def Sequential(Module):
         param = []
 
         for layer in layers:
-            param.append([self.w, self.grad_w, self.b, self.grad_b])
+            param.append([(self.w, self.grad_w, self.mean_w, self.var_w),
+                          (self.b, self.grad_b, self.mean_b, self.var_b)])
 
         return param
 

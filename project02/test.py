@@ -20,7 +20,16 @@ learning_rate = 0.001
 X_train, Y_train = generator(N)
 X_test, Y_test = generator(N)
 
-Model = Sequential(Linear(2,25), Relu(),
-                   Linear(25,25), Relu(),
-                   Linear(25,25), Relu(),
-                   Linear(25,1), Sigmoid())
+Models = { "RelU_network" : Sequential(Linear(2,25), ReLU(),
+                                       Linear(25,25), ReLU(),
+                                       Linear(25,25), ReLU(),
+                                       Linear(25,1), Xavier = True),
+           "Tanh_network" : Sequential(Linear(2,25), Tanh(),
+                                       Linear(25,25), Tanh(),
+                                       Linear(25,25), Tanh(),
+                                       Linear(25,1), Xavier = True),
+           "Sigmoid_network" : Sequential(Linear(2,25), Sigmoid(),
+                                          Linear(25,25), Sigmoid(),
+                                          Linear(25,25), Sigmoid(),
+                                          Linear(25,1), Xavier = True)
+         }

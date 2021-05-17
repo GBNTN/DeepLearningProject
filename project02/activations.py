@@ -1,7 +1,7 @@
 import torch
 from modules import Module
 
-class Relu(Module):
+class RelU(Module):
     def __init__():
         """ Constructor the Rectified Linear Unit (ReLU) activation function
             module.
