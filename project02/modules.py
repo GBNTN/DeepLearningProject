@@ -1,6 +1,10 @@
 import torch
 from loss import LossMSE
 
+"""
+Simple structure : allows to implement several modules and losses that inherit
+from it.
+"""
 class Module(object):
     def __init__(self):
         pass
@@ -14,8 +18,28 @@ class Module(object):
     def param(self):
         return []
 
+    def init_params(self, Xavier, Xavier_gain):
+        raise NotImplementedError
+
+    def stochastic_gradient_descent(self, learning_rate):
+        raise NotImplementedError
+
+    def zero_grad(self):
+        raise NotImplementedError
+
 def Linear(Module):
     def __init__(self, input_size, output_size, Xavier = True, Xavier_gain = 1.0):
+        """ Constructor of the Linear layer class.
+
+            :param input_size: input dimension.
+            :param output_size: output dimension.
+            :param Xavier: Boolean, will intialize the weight and bias parameter
+                           according to a normal distribution with the Xavier method
+                           if set to True (standard deviation changed). Otherwise,
+                           it will initialize the latter with a std of 1.0.
+            :param Xavier_gain: gain of the std, with the Xavier method.
+        """
+
         Module.__init__()
         self.input_size = input_size
         self.output_size = output_size
@@ -31,6 +55,12 @@ def Linear(Module):
         self.init_params(Xavier, Xavier_gain)
 
     def forward(self, *input):
+        """ Forward pass trough the layer of the Linear class.
+
+            :param input: the input(s) of the layer.
+
+            :return: the output of the layer (prediction).
+        """
         input_ = input[0].clone()
 
         self.input = input_
@@ -38,6 +68,12 @@ def Linear(Module):
         return input_.mm(self.w) + self.b
 
     def backward(self, *gradwrtoutput):
+        """ backpropagation of the output gradient of the layer of the Linear class.
+
+            :param gradwrtoutput: gradient with respect to the output of layer.
+
+            :return: backpropagation of the output gradient.
+        """
         input_ = gradwrtoutput[0].clone()
         grad = self.input.t().mm(input_)
 
@@ -47,6 +83,9 @@ def Linear(Module):
         return grad
 
     def param(self):
+        """ Return the parameters of the layer (weight values and gradient, bias
+            values and gradient).
+        """
         return [self.w, self.grad_w, self.b, self.grad_b]
 
     def init_params(Xavier, Xavier_gain):
@@ -64,9 +103,33 @@ def Linear(Module):
         self.w = torch.empty((self.input_size,self.output_size)).normal_(0, std)
         self.b = torch.empty((1,self.output_size)).normal_(0, std)
 
+    def stochastic_gradient_descent(self, leaarning_rate = 0.001):
+        """ stochastic gradient descent of layer of Linear class.
+
+            :param learning_rate: learning rate.
+        """
+
+        self.w.sub_(learning * self.grad_w)
+        self.b.sub_(learning * self.grad_b)
+
+    def zero_grad(self):
+        """ Put the gradient of each layer to zero."""
+
+        self.w.new_zeros(self.w.shape)
+        self.b.new_zeros(self.b.shape)
+
 
 def Sequential(Module):
     def __init__(self, *layers, Xavier = True, Xavier_gain = 1.0):
+        """ Constructor of the Sequential model, which can stack multiple layers.
+
+            :param layers: the different layer(s) of the neural network model.
+            :param Xavier: Boolean, will intialize the weight and bias parameter
+                           according to a normal distribution with the Xavier method
+                           if set to True (standard deviation changed). Otherwise,
+                           it will initialize the latter with a std of 1.0.
+            :param Xavier_gain: gain of the std, with the Xavier method.
+        """
         Module.__init__()
         self.layers = list(layers)
 
@@ -74,20 +137,57 @@ def Sequential(Module):
             layer.init_params(Xavier, Xavier_gain)
 
     def forward(self, *input):
-        input_ = input[0].clone()
+        """ Forward pass trough the different layer(s).
+
+            :param input: the input(s) of the layer(s).
+
+            :return: the output of the last layer (prediction).
+        """
+        output = input[0].clone()
 
         for layer in layers:
-            input_ = layer.forward(input_)
+            output = layer.forward(output)
 
-        return input_
+        return output
 
     def backward(self, *gradwrtoutput):
-        grad = gradwrtoutput[0].clone()
+        """ backpropagation of the output gradient through the layers.
+
+            :param gradwrtoutput: gradient with respect to the output of the
+                                  different layers.
+
+            :return: backpropagation of the output gradient.
+        """
+        bw = gradwrtoutput[0].clone()
 
         for i in range(len(layers)-1, 0, -1):
-            grad = layers[i].backward(grad)
+            bw = layers[i].backward(bw)
 
-        return grad
+        return bw
 
     def param(self): # TODO
-        return []
+        """ Return the parameters of each layer in an array of the size of the
+            number of layer.
+        """
+
+        param = []
+
+        for layer in layers:
+            param.append([self.w, self.grad_w, self.b, self.grad_b])
+
+        return param
+
+    def stochastic_gradient_descent(self, leaarning_rate = 0.001):
+        """ stochastic gradient descent of each layer.
+
+            :param learning_rate: learning rate.
+        """
+
+        for layer in self.layers:
+            layer.stochastic_gradient_descent(learning_rate)
+
+    def zero_grad(self):
+        """ Put the gradient of each layer to zero."""
+
+        for layer in self.layers:
+            layer.zero_grad()

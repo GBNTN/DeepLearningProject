@@ -2,12 +2,21 @@ from torch import zeros
 
 class LossMSE(Module):
     def __init__(self):
+        """ Constructor of the Mean Squared Erro (MSE) loss function. """
         Module.__init__()
         self.error = None
         self.pred = None
         self.labels = None
 
     def forward(self, labels, pred):
+        """ Compute the Mean Squared error Loss function of the predictions with
+            respect to the true labels.
+
+            :param labels: True class labels.
+            :param pred: Predicted class labels by a model.
+
+            :return: MSE.
+        """
         self.pred = pred
         self.labels = labels
 
@@ -18,4 +27,5 @@ class LossMSE(Module):
 
 
     def backward(self):
+        """ Compute the loss function (MSE) gradient. """
         return 2 * self.error / self.error.size()
