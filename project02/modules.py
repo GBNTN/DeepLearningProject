@@ -110,14 +110,14 @@ def Linear(Module):
         self.w = torch.empty((self.input_size,self.output_size)).normal_(0, std)
         self.b = torch.empty((1,self.output_size)).normal_(0, std)
 
-    def stochastic_gradient_descent(self, leaarning_rate = 0.001):
-        """ stochastic gradient descent of layer of Linear class.
+    def gradient_descent(self, learning_rate = 0.001):
+        """ Gradient descent of layer of Linear class.
 
             :param learning_rate: learning rate.
         """
 
-        self.w.sub_(learning * self.grad_w)
-        self.b.sub_(learning * self.grad_b)
+        self.w.sub_(learning_rate * self.grad_w)
+        self.b.sub_(learning_rate * self.grad_b)
 
     def zero_grad(self):
         """ Put the gradient of each layer to zero."""
@@ -185,14 +185,14 @@ def Sequential(Module):
 
         return param
 
-    def stochastic_gradient_descent(self, leaarning_rate = 0.001):
-        """ stochastic gradient descent of each layer.
+    def gradient_descent(self, learning_rate = 0.001):
+        """ Gradient descent of each layer.
 
             :param learning_rate: learning rate.
         """
 
         for layer in self.layers:
-            layer.stochastic_gradient_descent(learning_rate)
+            layer.gradient_descent(learning_rate)
 
     def zero_grad(self):
         """ Put the gradient of each layer to zero."""

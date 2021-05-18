@@ -8,7 +8,7 @@ class LossMSE(Module):
         self.pred = None
         self.labels = None
 
-    def forward(self, labels, pred):
+    def forward(self, pred, labels):
         """ Compute the Mean Squared error Loss function of the predictions with
             respect to the true labels.
 

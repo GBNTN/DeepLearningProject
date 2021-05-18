@@ -1,29 +1,34 @@
 import torch
 import math
 import cross_validation
+import loss
 from helpers import generator
 
+
 class Train:
-    def __init__(self, *models, epochs = 100,  batch_size = 16, learning_rate = 0.001,
+    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 16, learning_rate = 0.001, Adam = True
                  epislon = 0.01, beta_1 = 0.9, beta_2 = 0.09):
         """ Constructor of the Train class, enables to train multiple networks.
 
-            :param models:
-            :param epochs:
-            :param batch_size:
-            :param learning_rate:
-            :param epsilon:
-            :param beta_1:
-            :param beta_2:
+            :param models: list of the model(s)
+            :param epochs: number of epochs
+            :param mini_batch_size: mini_batch size
+            :param learning_rate: learning rate for optimization of parameters.
+            :param epsilon: small value preventing from zero division.
+            :param beta_1: hyperparameter for the calculation ot the mean in the Adam optimizer.
+            :param beta_2: hyperparameter for the calculation ot the variance in the Adam optimizer.
 
             :return: the models and their accuracy in a dictionnary.
         """
 
+        # Models and info :
         self.models = list(models)
+        self.names = names
 
         # Parameters for duration:
         self.epochs = epochs
-        self.batch_size = batch_size
+        self.mini_batch_size = mini_batch_size
+        self.criterion = LossMSE()
 
         # Parameters for the optimization (with Adam):
         self.learning_rate = learning_rate
@@ -46,34 +51,52 @@ class Train:
         return self.models, self.accuracy
 
     # TO BE FINISHED
-    def create_mini_batches(self):
+    def create_mini_batches(self, input, labels):
         """ create mini batches to be iterated over while training the model(s). """
         mini_batches = []
-        num_batches = self.train_input.size(0) // self.batch_size
+        num_batches = input.size(0) // self.mini_batch_size
 
-        for index in range(0, train_input.size(0), ):
-            batch_indices = tensor()
-            mini_batch = self.train_input.narrow()
+        for n in range(num_batches)
+            batch_indices = torch.LongTensor(torch.randint(0, input.size(0), self.mini_batch_size))
+            mini_batch_input = input.index_select(0, batch_indices)
+            mini_batch_labels = labels.index_select(0, batch_indices)
 
-        return minibatches
+        return mini_batch_input, mini_batch_labels
 
-    # TO BE FINISHED
     def train(self):
-        """ Training of the model(s).
-
+        """ Training of the model(s) with either stochastic gradient descent or
+            with adam optimizer if param Adam is True.
         """
-        for model in models:
+        for model, name in zip(self.models, self.names):
+            print('Training {}...'.format(name))
             for epoch in range(self.epochs):
+                loss = 0.0
 
                 for batch in self.create_mini_batches():
+                    model.zero_grad()
 
-        raise NotImplementedError
+                    pred = model.forward(batch)
+                    loss += self.criterion.forward(pred, self.train_labels)
 
-    def update(self):
+                    gradwrtoutput = self.criterion.backward()
+                    self.model.backward(gradwrtoutput)
+
+                    if Adam:
+                        self.adam_optimizer()
+                    else:
+                        self.stochastic_gradient_descent()
+
+                min_loss = loss.min()
+                epoch_min_loss = loss.argmin()
+                print('Epoch = {}, Loss = {}, Best Epoch = {}, Best Val = {}'.format(epoch, loss, epoch_min_loss, min_loss))
+
+
+    def stochastic_gradient_descent(self):
         """ Update of the weight and bias parameters of the model(s). """
+        self.t += 1
 
         for model in self.models:
-            model.stochastic_gradient_descent(learning_rate = learning_rate)
+            model.gradient_descent(learning_rate = learning_rate)
 
     def adam_optimizer(self):
         """ optimization with Adam. """
