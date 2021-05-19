@@ -6,13 +6,14 @@ from helpers import generator
 
 
 class Train:
-    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 16, learning_rate = 0.001, Adam = True
+    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 16, criterion = "MSE", learning_rate = 0.001, Adam = True
                  epislon = 0.01, beta_1 = 0.9, beta_2 = 0.09):
         """ Constructor of the Train class, enables to train multiple networks.
 
             :param models: list of the model(s)
             :param epochs: number of epochs
             :param mini_batch_size: mini_batch size
+            :param criterion: if "MSE", use the MSE loss; if "MAE" it will be the MAE loss function.
             :param learning_rate: learning rate for optimization of parameters.
             :param epsilon: small value preventing from zero division.
             :param beta_1: hyperparameter for the calculation ot the mean in the Adam optimizer.
@@ -28,7 +29,10 @@ class Train:
         # Parameters for duration:
         self.epochs = epochs
         self.mini_batch_size = mini_batch_size
-        self.criterion = LossMSE()
+        if criterion == "MSE":
+            self.criterion = LossMSE()
+        elif criterion == "MAE":
+            self.criterion == LossMAE()
 
         # Parameters for the optimization (with Adam):
         self.learning_rate = learning_rate
@@ -50,19 +54,6 @@ class Train:
 
         return self.models, self.accuracy
 
-    # TO BE FINISHED
-    def create_mini_batches(self, input, labels):
-        """ create mini batches to be iterated over while training the model(s). """
-        mini_batches = []
-        num_batches = input.size(0) // self.mini_batch_size
-
-        for n in range(num_batches)
-            batch_indices = torch.LongTensor(torch.randint(0, input.size(0), self.mini_batch_size))
-            mini_batch_input = input.index_select(0, batch_indices)
-            mini_batch_labels = labels.index_select(0, batch_indices)
-
-        return mini_batch_input, mini_batch_labels
-
     def train(self):
         """ Training of the model(s) with either stochastic gradient descent or
             with adam optimizer if param Adam is True.
@@ -72,11 +63,14 @@ class Train:
             for epoch in range(self.epochs):
                 loss = 0.0
 
-                for batch in self.create_mini_batches():
+                for batch_index in range(0, self.train_input.size(0), self.mini_batch_size):
+                    batch_input = self.train_input.narrow(dim = 0, batch_index, self.mini_batch_size)
+                    batch_labels = self.train_labels.narrow(dim = 0, batch_index, self.mini_batch_size)
+
                     model.zero_grad()
 
-                    pred = model.forward(batch)
-                    loss += self.criterion.forward(pred, self.train_labels)
+                    pred = model.forward(batch_input)
+                    loss += self.criterion.forward(pred, batch_labels)
 
                     gradwrtoutput = self.criterion.backward()
                     self.model.backward(gradwrtoutput)
@@ -88,7 +82,7 @@ class Train:
 
                 min_loss = loss.min()
                 epoch_min_loss = loss.argmin()
-                print('Epoch = {}, Loss = {}, Best Epoch = {}, Best Val = {}'.format(epoch, loss, epoch_min_loss, min_loss))
+                print('Epoch = {}, {} Loss = {}, Best Epoch = {}, Best Val = {}'.format(epoch, self.criterion, loss, epoch_min_loss, min_loss))
 
 
     def stochastic_gradient_descent(self):
@@ -122,4 +116,4 @@ class Train:
         for model in self.models:
             predicted_labels = self.model.forward(self.test_input)
             grad = self.model.zero_grad()
-            self.accuracy.append((predicted_labels == self.test_labels).mean())
+            self.accuracy.append((predicted_labels.argmax(dim = 1) == self.test_labels).mean())
