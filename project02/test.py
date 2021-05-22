@@ -27,11 +27,11 @@ EPSILPON = 0.01
 # Cross validation boolean parameter :
 CROSS_VALIDATION = True
 
-"""
+
 # Generate Data sampled from an uniform distribution in the interval [0,1]
-X_train, Y_train = generator(N)
-X_test, Y_test = generator(N)
-"""
+train_input, train_labels = generator(N)
+test_input, test_labels = generator(N)
+
 
 Models_names = ["RelU_network", "Tanh_network", "Sigmoid_network"]
 Models = [Sequential(Linear(INPUT_SIZE,NUM_HIDDEN_UNITS), ReLU(),
@@ -76,8 +76,8 @@ else :
     optimizer.train()
 
     # Computing the accuracy :
-    accuracy_train = optimizer.compute_accuracy(optimizer.train_input, optimizer.train_labels)
-    accuracy_test = optimizer.compute_accuracy(optimizer.test_input, optimizer.test_labels)
+    accuracy_train = optimizer.compute_accuracy(train_input, train_labels)
+    accuracy_test = optimizer.compute_accuracy(test_input, test_labels)
 
     for index, (name, model) in enumerate(Models.item()):
         print('Train accuracy of {} = {:.2f}'.format(name, accuracy_train[index]*100))
