@@ -5,9 +5,9 @@ import loss
 from helpers import generator
 
 
-class Train:
-    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 16, criterion = "MSE", learning_rate = 0.001, Adam = True
-                 epislon = 0.01, beta_1 = 0.9, beta_2 = 0.09):
+class Optimizer:
+    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 4, criterion = "MSE", learning_rate = 0.001, Adam = True
+                 epislon = 1e-8, beta_1 = 0.9, beta_2 = 0.999):
         """ Constructor of the Train class, enables to train multiple networks.
 
             :param models: list of the model(s)
@@ -41,10 +41,7 @@ class Train:
         self.beta_2 = beta_2
         self.step = 0
 
-        # Generate train and test data:
-        self.train_input, self.train_labels = generator(1000)
-        self.test_input, self.test_labels = generator(1000)
-
+        """
         # Training the model(s):
         train()
 
@@ -53,8 +50,9 @@ class Train:
         compute_accuracy(self.input, self.labels)
 
         return self.models, self.accuracy
+        """
 
-    def train(self):
+    def train(self, train_input, train_labels, verbose = False):
         """ Training of the model(s) with either stochastic gradient descent or
             with adam optimizer if param Adam is True.
         """
@@ -63,9 +61,9 @@ class Train:
             for epoch in range(self.epochs):
                 loss = 0.0
 
-                for batch_index in range(0, self.train_input.size(0), self.mini_batch_size):
-                    batch_input = self.train_input.narrow(dim = 0, batch_index, self.mini_batch_size)
-                    batch_labels = self.train_labels.narrow(dim = 0, batch_index, self.mini_batch_size)
+                for batch_index in range(0, train_input.size(0), self.mini_batch_size):
+                    batch_input = train_input.narrow(dim = 0, batch_index, self.mini_batch_size)
+                    batch_labels = train_labels.narrow(dim = 0, batch_index, self.mini_batch_size)
 
                     model.zero_grad()
 
@@ -82,7 +80,9 @@ class Train:
 
                 min_loss = loss.min()
                 epoch_min_loss = loss.argmin()
-                print('Epoch = {}, {} Loss = {}, Best Epoch = {}, Best Val = {}'.format(epoch, self.criterion, loss, epoch_min_loss, min_loss))
+
+                if verbose:
+                    print('Epoch = {}, {} Loss = {}, Best Epoch = {}, Best Val = {}'.format(epoch, self.criterion, loss, epoch_min_loss, min_loss))
 
 
     def stochastic_gradient_descent(self):
@@ -90,7 +90,7 @@ class Train:
         self.t += 1
 
         for model in self.models:
-            model.gradient_descent(learning_rate = learning_rate)
+            model.gradient_descent(learning_rate = self.learning_rate)
 
     def adam_optimizer(self):
         """ optimization with Adam. """
@@ -107,13 +107,13 @@ class Train:
 
                 w_b.sub_(self.learning_rate * mean_hat / (math.sqrt(var_hat) + epsilon))
 
-    def compute_accuracy(self):
-        """ Compute the model(s) prediction accuracy.
+    def compute_accuracy(self, test_input, test_labels):
+        """ Compute the model(s) prediction accuracy. """
+        accuracy = []
 
-            :param input:
-            :param output:
-        """
         for model in self.models:
-            predicted_labels = self.model.forward(self.test_input)
+            predicted_labels = self.model.forward(test_input)
             grad = self.model.zero_grad()
-            self.accuracy.append((predicted_labels.argmax(dim = 1) == self.test_labels).mean())
+            accuracy.append((predicted_labels.argmax(dim = 1) == test_labels).mean())
+
+        return accuracy
