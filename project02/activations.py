@@ -1,8 +1,9 @@
 import torch
+import math
 from modules import Module
 
-class RelU(Module):
-    def __init__():
+class ReLU(Module):
+    def __init__(self):
         """ Constructor the Rectified Linear Unit (ReLU) activation function
             module.
         """
@@ -34,16 +35,16 @@ class RelU(Module):
         bw[bw < 0] = 0
         bw[bw > 0] = 1
 
-        return bw @ input
+        return bw.mul(input)
 
 
 class Tanh(Module):
-    def __init__():
+    def __init__(self):
         """ Constructor of the hyperbolic tangent activation function module. """
         Module.__init__(self)
         self.s = None
 
-    def tanh(x):
+    def tanh(self, x):
         """ Definition of the tanh function. """
         return (math.e**x - (1/math.e)**(-x)) / (math.e**x + (1/math.e)**(-x))
 
@@ -58,7 +59,7 @@ class Tanh(Module):
         s = input[0].clone()
         self.s = s
 
-        return tanh(s)
+        return self.tanh(s)
 
     def backward(self, *gradwrtoutput):
         """ Determine of the hyperbolic tangent gradient with respect to the output
@@ -73,16 +74,16 @@ class Tanh(Module):
         input = gradwrtoutput[0].clone()
         bw = self.s.clone()
 
-        return (1 - tanh(bw)**2) @ input
+        return (1 - self.tanh(bw)**2).mul(input)
 
 
 class Sigmoid(Module):
-    def __init__():
+    def __init__(self):
         """ Constructor of the sigmoid activation function module. """
         Module.__init__(self)
         self.s = None
 
-    def sigmoid_(x):
+    def sigmoid_(self, x):
         """ Definition of the sigmoid function. """
         return 1 / (1 + math.e ** (-x))
 
@@ -97,7 +98,7 @@ class Sigmoid(Module):
         s = input[0].clone()
         self.s = s
 
-        return sigmoid_(s)
+        return self.sigmoid_(s)
 
     def backward(self, *gradwrtoutput):
         """ Determine the sigmoid gradient with respect to the output of the
@@ -112,6 +113,6 @@ class Sigmoid(Module):
         input = gradwrtoutput[0].clone()
         bw = self.s.clone()
 
-        grad = sigmoid_(bw)*(1 - sigmoid_(bw))
+        grad = self.sigmoid_(bw)*(1 - self.sigmoid_(bw))
 
-        return grad @ input
+        return grad.mul(input)

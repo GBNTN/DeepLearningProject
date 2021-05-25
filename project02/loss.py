@@ -1,9 +1,10 @@
 from torch import zeros
+from modules import Module
 
 class LossMSE(Module):
     def __init__(self):
         """ Constructor of the Mean Squared Error (MSE) loss function. """
-        Module.__init__()
+        Module.__init__(self)
         self.error = None
         self.pred = None
         self.labels = None
@@ -17,8 +18,8 @@ class LossMSE(Module):
 
             :return: MSE.
         """
-        self.pred = pred
-        self.labels = zeros((labels.size(0), 2)).scatter(1, labels.view(-1,1), 1.0)
+        self.pred = pred.clone()
+        self.labels = zeros((labels.shape[0], 2)).scatter_(1, labels.view(-1, 1), 1)
 
         # Error between predicted labels and targets
         self.error = self.pred - self.labels
@@ -27,7 +28,7 @@ class LossMSE(Module):
 
     def backward(self):
         """ Compute the loss function (MSE) gradient. """
-        return 2 * self.error / self.error.size()
+        return 2 * self.error / self.pred.size(0)
 
 
 class LossMAE(Module):
@@ -50,7 +51,7 @@ class LossMAE(Module):
         self.pred = pred
 
         # labels to one-hot-vectors :
-        self.labels = zeros((labels.size(0), 2)).scatter(1, labels.view(-1,1), 1.0)
+        self.labels = zeros((labels.size(0), 2)).scatter_(1, labels.view(-1, 1), 1)
 
         # Error between predicted labels and true labels :
         self.error = self.pred - self.labels

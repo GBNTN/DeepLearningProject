@@ -1,5 +1,5 @@
 import torch
-from loss import LossMSE
+import math
 
 """
 Simple structure : allows to implement several modules and losses that inherit
@@ -19,15 +19,15 @@ class Module(object):
         return []
 
     def init_params(self, Xavier, Xavier_gain):
-        raise NotImplementedError
+        pass
 
     def stochastic_gradient_descent(self, learning_rate):
-        raise NotImplementedError
+        pass
 
     def zero_grad(self):
-        raise NotImplementedError
+        pass
 
-def Linear(Module):
+class Linear(Module):
     def __init__(self, input_size, output_size, Xavier = True, Xavier_gain = 1.0):
         """ Constructor of the Linear layer class.
 
@@ -40,23 +40,23 @@ def Linear(Module):
             :param Xavier_gain: gain of the std, with the Xavier method.
         """
 
-        Module.__init__()
+        Module.__init__(self)
         self.input_size = input_size
         self.output_size = output_size
 
         self.input = None
 
-        self.w = zeros((input_size, output_size))
-        self.b = zeros((1, output_size))
+        self.w = None
+        self.b = None
 
-        self.grad_w = None
-        self.grad_b = None
+        self.grad_w = torch.zeros((input_size, output_size))
+        self.grad_b = torch.zeros((1, output_size))
 
-        self.mean_w = zeros((input_size, output_size))
-        self.var_w = zeros((input_size, output_size))
+        self.mean_w = torch.zeros((input_size, output_size))
+        self.var_w = torch.zeros((input_size, output_size))
 
-        self.mean_b = zeros((1, output_size))
-        self.var_b = zeros((1, output_size))
+        self.mean_b = torch.zeros((1, output_size))
+        self.var_b = torch.zeros((1, output_size))
 
         self.init_params(Xavier, Xavier_gain)
 
@@ -86,7 +86,7 @@ def Linear(Module):
         self.grad_w += grad
         self.grad_b += input_.sum(0)
 
-        return grad
+        return input_.mm(self.w.t())
 
     def param(self):
         """ Return the parameters of the layer (weight values and gradient, bias
@@ -95,7 +95,7 @@ def Linear(Module):
         return [(self.w, self.grad_w, self.mean_w, self.var_w),
                 (self.b, self.grad_b, self.mean_b, self.var_b)]
 
-    def init_params(Xavier, Xavier_gain):
+    def init_params(self, Xavier, Xavier_gain):
         """ initliazation of the weights and bias parameters of the layer.
 
             :param Xavier: A boolean, which enables the xavier initliazation of
@@ -126,7 +126,7 @@ def Linear(Module):
         self.b.new_zeros(self.b.shape)
 
 
-def Sequential(Module):
+class Sequential(Module):
     def __init__(self, *layers, Xavier = True, Xavier_gain = 1.0):
         """ Constructor of the Sequential model, which can stack multiple layers.
 
@@ -137,7 +137,7 @@ def Sequential(Module):
                            it will initialize the latter with a std of 1.0.
             :param Xavier_gain: gain of the std, with the Xavier method.
         """
-        Module.__init__()
+        Module.__init__(self)
         self.layers = list(layers)
 
         for layer in self.layers :
@@ -152,7 +152,7 @@ def Sequential(Module):
         """
         output = input[0].clone()
 
-        for layer in layers:
+        for layer in self.layers:
             output = layer.forward(output)
 
         return output
@@ -167,8 +167,12 @@ def Sequential(Module):
         """
         bw = gradwrtoutput[0].clone()
 
-        for i in range(len(layers)-1, 0, -1):
-            bw = layers[i].backward(bw)
+        """
+        for i in range(len(self.layers)-1, 0, -1):
+            bw = self.layers[i].backward(bw)
+        """
+        for layer in reversed(self.layers):
+            bw = layer.backward(bw)
 
         return bw
 
@@ -177,13 +181,13 @@ def Sequential(Module):
             number of layer.
         """
 
-        param = []
+        params = []
 
-        for layer in layers:
-            param.append([(self.w, self.grad_w, self.mean_w, self.var_w),
-                          (self.b, self.grad_b, self.mean_b, self.var_b)])
+        for layer in self.layers:
+            for param in layer.param():
+                params.append(param)
 
-        return param
+        return params
 
     def gradient_descent(self, learning_rate = 0.001):
         """ Gradient descent of each layer.

@@ -1,13 +1,13 @@
 import torch
 import math
 import cross_validation
-import loss
+from loss import LossMSE
 from helpers import generator
 
 
 class Optimizer:
-    def __init__(self, *models, names, epochs = 100,  mini_batch_size = 4, criterion = "MSE", learning_rate = 0.001, Adam = True
-                 epislon = 1e-8, beta_1 = 0.9, beta_2 = 0.999):
+    def __init__(self, models, names, epochs = 100,  mini_batch_size = 4, criterion = "MSE",
+                 learning_rate = 0.001, Adam = True, epsilon = 1e-8, beta_1 = 0.9, beta_2 = 0.999):
         """ Constructor of the Train class, enables to train multiple networks.
 
             :param models: list of the model(s)
@@ -23,7 +23,7 @@ class Optimizer:
         """
 
         # Models and info :
-        self.models = list(models)
+        self.models = models
         self.names = names
 
         # Parameters for duration:
@@ -35,35 +35,26 @@ class Optimizer:
             self.criterion == LossMAE()
 
         # Parameters for the optimization (with Adam):
+        self.Adam = Adam
         self.learning_rate = learning_rate
         self.epsilon = epsilon
         self.beta_1 = beta_1
         self.beta_2 = beta_2
         self.step = 0
 
-        """
-        # Training the model(s):
-        train()
-
-        # Computing the accuracy of the model(s):
-        self.accuracy = []
-        compute_accuracy(self.input, self.labels)
-
-        return self.models, self.accuracy
-        """
-
     def train(self, train_input, train_labels, verbose = False):
         """ Training of the model(s) with either stochastic gradient descent or
             with adam optimizer if param Adam is True.
         """
         for model, name in zip(self.models, self.names):
-            print('Training {}...'.format(name))
+            if verbose:
+                print('Training {}...'.format(name))
             for epoch in range(self.epochs):
                 loss = 0.0
 
                 for batch_index in range(0, train_input.size(0), self.mini_batch_size):
-                    batch_input = train_input.narrow(dim = 0, batch_index, self.mini_batch_size)
-                    batch_labels = train_labels.narrow(dim = 0, batch_index, self.mini_batch_size)
+                    batch_input = train_input.narrow(0, batch_index, self.mini_batch_size)
+                    batch_labels = train_labels.narrow(0, batch_index, self.mini_batch_size)
 
                     model.zero_grad()
 
@@ -71,9 +62,9 @@ class Optimizer:
                     loss += self.criterion.forward(pred, batch_labels)
 
                     gradwrtoutput = self.criterion.backward()
-                    self.model.backward(gradwrtoutput)
+                    model.backward(gradwrtoutput)
 
-                    if Adam:
+                    if self.Adam:
                         self.adam_optimizer()
                     else:
                         self.stochastic_gradient_descent()
@@ -102,18 +93,18 @@ class Optimizer:
                 mean = self.beta_1 * mean + (1-self.beta_2) * grad
                 var = self.beta_2 * var + (1-self.beta_2) * grad**2
 
-                mean_hat = mean / (1 - beta_1**(self.step + 1))
-                var_hat = var / (1 - beta_2**(self.step + 1))
+                mean_hat = mean / (1 - self.beta_1**(self.step + 1))
+                var_hat = var / (1 - self.beta_2**(self.step + 1))
 
-                w_b.sub_(self.learning_rate * mean_hat / (math.sqrt(var_hat) + epsilon))
+                w_b.sub_(self.learning_rate * mean_hat / (var_hat.sqrt() + self.epsilon))
 
     def compute_accuracy(self, test_input, test_labels):
         """ Compute the model(s) prediction accuracy. """
-        accuracy = []
+        accuracy = torch.zeros((len(self.names),1))
 
-        for model in self.models:
-            predicted_labels = self.model.forward(test_input)
-            grad = self.model.zero_grad()
-            accuracy.append((predicted_labels.argmax(dim = 1) == test_labels).mean())
+        for index, model in enumerate(self.models):
+            predicted_labels = model.forward(test_input)
+            grad = model.zero_grad()
+            accuracy[index] = (predicted_labels.argmax(dim = 1) == test_labels).float().mean()
 
         return accuracy
