@@ -78,7 +78,7 @@ class Optimizer:
 
     def stochastic_gradient_descent(self):
         """ Update of the weight and bias parameters of the model(s). """
-        self.t += 1
+        self.step += 1
 
         for model in self.models:
             model.gradient_descent(learning_rate = self.learning_rate)
