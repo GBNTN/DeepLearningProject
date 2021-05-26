@@ -20,7 +20,7 @@ BATCH_SIZE = 10
 CRITERION = "MSE"
 
 # Adam Optimizer parameters : (best params found with cross-validation)
-ADAM = True
+ADAM = False
 LEARNING_RATE = 0.001
 B1 = 0.9
 B2 = 0.09
@@ -52,7 +52,7 @@ Models = [Sequential(Linear(INPUT_SIZE,NUM_HIDDEN_UNITS), ReLU(),
 
 if CROSS_VALIDATION:
     print("Cross-Validation of the hyperparameters")
-    cross_params = {"lr" : torch.linspace(1e-4, 1e-1, 10)}
+    cross_params = {"lr" : torch.linspace(1e-4, 1e-1, 2)}
 
     if ADAM:
         cross_params["eps"] = torch.linspace(1e-8, 1e-6, 5)
@@ -65,13 +65,13 @@ if CROSS_VALIDATION:
 
     print("Results of Cross-Validation")
     for model, name in zip(Models, Models_names):
-        print("The best parameters of the {} with an accuracy of {} are :".format(name, CV.best_params[name]["accuracy"]))
+        print("The best parameters of the {} with an accuracy of {:.2f} are :".format(name, CV.best_params[name]["accuracy"]))
         for param_name in CV.best_params[name]:
             if not param_name == "accuracy":
                 print("{} = {} ".format(param_name, CV.best_params[name][param_name]))
 
     if PLOT:
-        plot_cross_validation(ADAM, CV.best_params)
+        plot_cross_validation(accuracy = CV.best_params, Adam = ADAM)
 else :
     # Construct the optimizer and generate Data sampled from an uniform distribution in the interval [0,1]
     optimizer = Optimizer(Models, Models_names, epochs = NUM_EPOCH,  mini_batch_size = BATCH_SIZE,
@@ -86,5 +86,5 @@ else :
     accuracy_test = optimizer.compute_accuracy(test_input, test_labels)
 
     for index, name in enumerate(Models_names):
-        print('Train accuracy of {} = {:.2f}'.format(name, accuracy_train[index].item()*100))
-        print('Test accuracy of {} = {:.2f}'.format(name, accuracy_test[index].item()*100))
+        print('Train accuracy of {} = {:.2f}'.format(name, accuracy_train[index].item()*10))
+        print('Test accuracy of {} = {:.2f}'.format(name, accuracy_test[index].item()*10))

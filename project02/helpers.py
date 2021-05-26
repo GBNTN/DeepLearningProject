@@ -20,7 +20,7 @@ def generator(n_points):
 
     return data, labels
 
-def plot_cross_validation(accuracy, Adam, path = "/plots/"):
+def plot_cross_validation(accuracy, Adam, path = "./plots/"):
     """
         plotting the cross-validation results, showing the evolution of the accuracy
         of the model(s) with the best hyper-parameters value found with cross-validaiton.
@@ -33,20 +33,24 @@ def plot_cross_validation(accuracy, Adam, path = "/plots/"):
     acc = []
     legend = []
 
-    for name in enumerate(accuracy):
-        legend_ = str(name) + " : "
+    for name in accuracy:
+        legend.append(str(name))
         for name_param in accuracy[name]:
             if name_param == "accuracy":
                 acc.append(accuracy[name][name_param])
-            else:
-                legend_ += str(name_param) + " = " + str(accuracy[name][name_param]) + ", "
-        legend.append(legend_)
 
-    plt.figure(figize = (5,5))
-    plt.hist(acc)
+    colors = ['r', 'g', 'b']
+    x_pos = torch.arange(len(accuracy))
+
+    plt.figure(figsize = (5,5))
+    for i in range(len(accuracy)):
+        plt.bar(x_pos.numpy()[i], acc[i], color = colors[int(i) % 3])
+
+    plt.xticks(x_pos, legend)
+    plt.yticks([0.0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0])
     if Adam :
         plt.title("Cross Validation Results with Adam Optimizer")
     else :
         plt.title("Cross Validation Results with Stochastic Gradient Descent")
-    plt.legend(legend)
+    plt.legend()
     plt.savefig(path + "cross_val_results.png",dpi = "figure", format = "png")

@@ -21,7 +21,7 @@ class Module(object):
     def init_params(self, Xavier, Xavier_gain):
         pass
 
-    def stochastic_gradient_descent(self, learning_rate):
+    def gradient_descent(self, learning_rate):
         pass
 
     def zero_grad(self):

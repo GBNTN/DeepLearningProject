@@ -51,7 +51,7 @@ class Cross_Validation:
                                               "eps" : eps,
                                               "b1" : b1,
                                               "b2" : b2,
-                                              "accuracy" : acc[index]}
+                                              "accuracy" : acc[index].item()}
 
                 # Printing accuracy scores
                 print("Accuracy of the {} = {:.2f}".format(name, acc[index].item()))
