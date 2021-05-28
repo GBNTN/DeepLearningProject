@@ -7,19 +7,19 @@ The objective of this project is to test different architectures to compare two 
 
 ### Data
 
-**TODO**
+The training and test sets consist of 1000 pairs of 14x14 greyscale images each depicting a digit. Every pair is labelled by a 1 if the first digit is lower or equal to the second, 0 otherwise.
 
 ### Methods 
 
-**TODO**
+In this project we implemented different neural networks to solve the following
+problem
 
 ### Libraries and Tools
 
 We used Python 3.9 version.
 
 * [Pytorch](https://pytorch.org)
-* [Numpy](https://numpy.org)
-* [Ccikit-learn](https://scikit-learn.org/stable/)
+* dlc_practical_prologue.py
 
 
 ## Project 02
