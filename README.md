@@ -13,7 +13,7 @@ The training and test sets consist of 1000 pairs of 14x14 greyscale images each 
 
 We tried to solve the problem using two strategies. 
 
-In the first strategy, we converted the two 14x14 greyscale pictures into a vector of size 392, that is 14 · 14 · 2, and we created a network made of linear layers that outputs one value which is 1 if the first digit is smaller or equal to the second one, 0 otherwise. 
+In the first strategy, we converted the two 14x14 greyscale pictures into a vector of size 392, that is 14 times 14 times 2, and we created a network made of linear layers that outputs one value which is 1 if the first digit is smaller or equal to the second one, 0 otherwise. 
 
 In the second strategy, we created a neural network that takes just one picture at a time, converts it into a number, and only then the numbers are compared to conclude whether the first pictures shows a smaller or equal number compared to the one in the second picture.
 
