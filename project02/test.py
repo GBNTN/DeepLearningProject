@@ -24,11 +24,11 @@ CRITERION = "CE"
 XAVIER_GAIN = 6.0
 
 # Adam Optimizer parameters : (best params found with cross-validation)
-ADAM = False
-LEARNING_RATE = 0.001
+ADAM = True
+LEARNING_RATE = 0.0001
 B1 = 0.9
-B2 = 0.09
-EPSILPON = 0.01
+B2 = 0.899
+EPSILPON = 1e-8
 
 # Cross validation boolean parameter :
 CROSS_VALIDATION = True
