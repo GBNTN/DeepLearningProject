@@ -1,7 +1,7 @@
 import torch
 import math
 import cross_validation
-from loss import LossMSE
+from loss import LossMSE, LossMAE, CrossEntropy
 from helpers import generator
 
 
@@ -32,8 +32,9 @@ class Optimizer:
         if criterion == "MSE":
             self.criterion = LossMSE()
         elif criterion == "MAE":
-            self.criterion == LossMAE()
-
+            self.criterion = LossMAE()
+        elif criterion == "CE":
+            self.criterion = CrossEntropy()
         # Parameters for the optimization (with Adam):
         self.Adam = Adam
         self.learning_rate = learning_rate

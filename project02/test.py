@@ -3,9 +3,10 @@ import math
 
 from loss import *
 from helpers import generator, plot_cross_validation
-from modules import *
+from modules import Linear, Sequential
 from activations import ReLU, Tanh, Sigmoid
 from cross_validation import Cross_Validation
+from train import Optimizer
 
 torch.set_grad_enabled(False)
 
@@ -17,7 +18,10 @@ NUM_HIDDEN_LAYERS = 3
 NUM_HIDDEN_UNITS = 25
 NUM_EPOCH = 100
 BATCH_SIZE = 10
-CRITERION = "MSE"
+CRITERION = "CE"
+
+# Weight initialization:
+XAVIER_GAIN = 6.0
 
 # Adam Optimizer parameters : (best params found with cross-validation)
 ADAM = False
@@ -39,25 +43,25 @@ Models_names = ["RelU_network", "Tanh_network", "Sigmoid_network"]
 Models = [Sequential(Linear(INPUT_SIZE,NUM_HIDDEN_UNITS), ReLU(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), ReLU(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), ReLU(),
-                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True),
+                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True, Xavier_gain = XAVIER_GAIN),
           Sequential(Linear(INPUT_SIZE,NUM_HIDDEN_UNITS), Tanh(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), Tanh(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), Tanh(),
-                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True),
+                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True, Xavier_gain = XAVIER_GAIN),
           Sequential(Linear(INPUT_SIZE,NUM_HIDDEN_UNITS), Sigmoid(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), Sigmoid(),
                      Linear(NUM_HIDDEN_UNITS,NUM_HIDDEN_UNITS), Sigmoid(),
-                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True)
+                     Linear(NUM_HIDDEN_UNITS,OUTPUT_SIZE), Xavier = True, Xavier_gain = XAVIER_GAIN)
          ]
 
 if CROSS_VALIDATION:
     print("Cross-Validation of the hyperparameters")
-    cross_params = {"lr" : torch.linspace(1e-4, 1e-1, 2)}
+    cross_params = {"lr" : torch.linspace(1e-4, 1e-1, 10)}
 
     if ADAM:
-        cross_params["eps"] = torch.linspace(1e-8, 1e-6, 5)
-        cross_params["b1"] = torch.linspace(0.8, 0.9, 10)
-        cross_params["b2"] = torch.linspace(0.9, 0.999, 10)
+        cross_params["eps"] = torch.linspace(1e-8, 1e-6, 3)
+        cross_params["b1"] = torch.linspace(0.8, 0.9, 2)
+        cross_params["b2"] = torch.linspace(0.9, 0.999, 2)
 
     CV = Cross_Validation(models = Models, names = Models_names, cross_params = cross_params)
     CV.cross_validation(epochs = NUM_EPOCH, mini_batch_size = BATCH_SIZE,
@@ -79,12 +83,12 @@ else :
                           epislon = EPSILON, beta_1 = B1, beta_2 = B2)
 
     # Training of the models:
-    optimizer.train()
+    optimizer.train(train_input, train_labels)
 
     # Computing the accuracy :
     accuracy_train = optimizer.compute_accuracy(train_input, train_labels)
     accuracy_test = optimizer.compute_accuracy(test_input, test_labels)
 
     for index, name in enumerate(Models_names):
-        print('Train accuracy of {} = {:.2f}'.format(name, accuracy_train[index].item()*10))
-        print('Test accuracy of {} = {:.2f}'.format(name, accuracy_test[index].item()*10))
+        print('Train accuracy of {} = {:.2f}'.format(name, accuracy_train[index].item()*100))
+        print('Test accuracy of {} = {:.2f}'.format(name, accuracy_test[index].item()*100))

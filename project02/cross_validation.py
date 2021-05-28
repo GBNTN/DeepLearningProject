@@ -1,7 +1,7 @@
 import torch
 from train import *
 from modules import *
-from loss import LossMSE
+from loss import LossMSE, CrossEntropy, LossMAE
 from helpers import generator
 
 class Cross_Validation:
