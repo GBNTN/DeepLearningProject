@@ -27,7 +27,7 @@ We used Python 3.9 version.
 The objective of this project is to design a mini “deep learning framework” using only pytorch’s tensor operations and the standard math library, hence in particular without using autograd or the neural-network modules.
 
 ### Data
-The training and test sets consist of 1000 data points sampled from the uniform distribution in $$[0,1]^2$$, labeled each with 1 if they are inside a disk of radius $1/ \sqrt{2 \pi}$ centered at (0.5, 0.5), and 0 otherwise. 
+The training and test sets consist of 1000 data points sampled from the uniform distribution in $[0,1]^2$, labeled each with 1 if they are inside a disk of radius $1/ \sqrt{2 \pi}$ centered at (0.5, 0.5), and 0 otherwise. 
 
 ### Methods 
 
