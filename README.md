@@ -15,7 +15,7 @@ The objective of this project is to test different architectures to compare two 
 
 ### Libraries and Tools
 
-We used Python 3.7 version.
+We used Python 3.9 version.
 
 * [Pytorch](https://pytorch.org)
 * [Numpy](https://numpy.org)
